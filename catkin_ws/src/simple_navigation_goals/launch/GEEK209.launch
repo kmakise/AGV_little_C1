@@ -1,0 +1,2 @@
+  <include file="$(find simple_navigation_goals)/launch/gmapping.launch" />
+  <node name="od" pkg="simple_navigation_goals" type="my">

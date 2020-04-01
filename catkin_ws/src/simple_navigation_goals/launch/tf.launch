@@ -1,0 +1,10 @@
+<launch>  
+	<node pkg="tf" type="static_transform_publisher" name="link1_broadcaster" args="0 0.18 0 1.57 0 0 base_link l_ultrasound 50" />  
+	<node pkg="tf" type="static_transform_publisher" name="link2_broadcaster" args="0 -0.18 0 -1.57 0 0 base_link r_ultrasound 50" />
+	<node pkg="tf" type="static_transform_publisher" name="link3_broadcaster" args="-0.265 0 0 3.14 0 0 base_link h_ultrasound 50" />  
+	<node pkg="tf" type="static_transform_publisher" name="link4_broadcaster" args="0.265 0 0 0 0 0 base_link q_ultrasound 50" />  
+
+  <node pkg="tf" type="static_transform_publisher" name="link5_broadcaster" args="0.265 -0.18 0 0 0 0 base_link IR_right 50" />  
+  <node pkg="tf" type="static_transform_publisher" name="link6_broadcaster" args="0.265 0.18 0 0 0 0 base_link IR_left 50" />  
+
+</launch> 

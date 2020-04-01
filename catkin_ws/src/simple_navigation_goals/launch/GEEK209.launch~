@@ -1,0 +1,2 @@
+  <include file="$(find simple_navigation_goals)/launch/gmapping.launch" />
+  <node name="robot_state_publisher" pkg="robot_state_publisher" type="state_publisher">

@@ -1,0 +1,8 @@
+prefix=/home/kmakise/catkin_ws/devel
+
+Name: simple_navigation_goals
+Description: Description of simple_navigation_goals
+Version: 0.0.0
+Cflags: -I/home/kmakise/catkin_ws/devel/include -I/home/kmakise/catkin_ws/src/simple_navigation_goals/include
+Libs: -L/home/kmakise/catkin_ws/devel/lib 
+Requires: 

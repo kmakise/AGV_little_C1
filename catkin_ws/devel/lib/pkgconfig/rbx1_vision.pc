@@ -1,0 +1,8 @@
+prefix=/home/kmakise/catkin_ws/devel
+
+Name: rbx1_vision
+Description: Description of rbx1_vision
+Version: 0.4.0
+Cflags: 
+Libs: -L/home/kmakise/catkin_ws/devel/lib 
+Requires: 

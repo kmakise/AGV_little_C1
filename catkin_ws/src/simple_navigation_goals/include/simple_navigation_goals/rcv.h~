@@ -1,0 +1,121 @@
+/**
+*
+* ━━━━━━神兽出没━━━━━━
+* 　　 ┏┓     ┏┓
+* 　　┏┛┻━━━━━┛┻┓
+* 　　┃　　　　　 ┃
+* 　　┃　　━　　　┃
+* 　　┃　┳┛　┗┳  ┃
+* 　　┃　　　　　 ┃
+* 　　┃　　┻　　　┃
+* 　　┃　　　　　 ┃
+* 　　┗━┓　　　┏━┛　Code is far away from bug with the animal protecting
+* 　　　 ┃　　　┃        神兽保佑,代码无bug
+* 　　　　┃　　　┃
+* 　　　　┃　　　┗━━━┓
+* 　　　　┃　　　　　　┣┓
+* 　　　　┃　　　　　　┏┛
+* 　　　　┗┓┓┏━┳┓┏┛
+* 　　　　 ┃┫┫ ┃┫┫
+* 　　　　 ┗┻┛ ┗┻┛
+*
+* ━━━━━━感觉萌萌哒━━━━━━
+*/
+
+
+
+/**
+ * 　　　　　　　 ┏┓　　　┏┓
+ * 　　　　　　　┏┛┻━━━━━┛┻┓
+ * 　　　　　　　┃　　　　　  ┃ 　
+ * 　　　　　　　┃　	    ━　　 ┃
+ * 　　　　　　　┃　＞　　＜　 ┃
+ * 　　　　　　　┃　　　　　　 ┃
+ * 　　　　　　　┃     ... ⌒ ...      ┃
+ * 　　　　　　　┃　　　　　  ┃
+ * 　　　　　　　┗━┓　　　┏━┛
+ * 　　　　　　　　 ┃　　　┃　Code is far away from bug with the animal protecting　　　　　　　　　　
+ * 　　　　　　　　 ┃　　　┃   神兽保佑,代码无bug
+ * 　　　　　　　　 ┃　　　┃　　　　　　　　　　　
+ * 　　　　　　　　 ┃　　　┃  　　　　　　
+ * 　　　　　　　　 ┃　　　┃
+ * 　　　　　　　　 ┃　　　┃　　　　　　　　　　　
+ * 　　　　　　　　 ┃　　　┗━━━┓
+ * 　　　　　　　　 ┃　　　　　　　┣┓
+ * 　　　　　　　　 ┃　　　　　　　┏┛
+ * 　　　　　　　　 ┗┓┓┏━┳┓┏┛
+ * 　　　　　　　　　┃┫┫　┃┫┫
+ * 　　　　　　　　　┗┻┛　┗┻┛
+ */
+
+/**
+ *　　　　　　　 ┏┓　 ┏┓+ +
+ *　　　　　　　┏┛┻━━━┛┻┓ + +
+ *　　　　　　　┃　　　　　　┃ 　
+ *　　　　　　　┃　　　━　　 ┃ ++ + + +
+ *　　　　　　 ████━████      ┃+
+ *　　　　　　　┃　　　　　　　┃ +
+ *　　　　　　　┃　　　┻　　　┃
+ *　　　　　　　┃　　　　　　┃ + +
+ *　　　　　　　┗━┓　　　┏━┛
+ *　　　　　　　　 ┃　　　┃　　　　　　　　　　　
+ *　　　　　　　　 ┃　　　┃ + + + +
+ *　　　　　　　　 ┃　　　┃　　　　Code is far away from bug with the animal protecting　　　　　　　
+ *　　　　　　　　 ┃　　　┃ + 　　　　神兽保佑,代码无bug　　
+ *　　　　　　　　 ┃　　　┃
+ *　　　　　　　　 ┃　　　┃　　+　　　　　　　　　
+ *　　　　　　　　 ┃　 　 ┗━━━┓ + +
+ *　　　　　　　　 ┃ 　　　　   ┣┓
+ *　　　　　　　　 ┃ 　　　　　 ┏┛
+ *　　　　　　　　 ┗┓┓┏━┳┓┏┛ + + + +
+ *　　　　　　　　  ┃┫┫ ┃┫┫
+ *　　　　　　　　  ┗┻┛ ┗┻┛+ + + +
+ */
+
+
+
+
+#include <iostream>
+#include <stdio.h>
+#include <stdlib.h>
+using namespace std;
+
+
+/*************************宏定义******************************/
+#define   HEAD                   0xff              //   协议头     maybe is error
+#define   END                     0x3e            //   协议尾
+#define   ODOM_FLAG       0x31            //   里程计标志位
+#define   SENSOR_FLAG    0x32            //   传感器标志位
+#define   ODOM_SIZE        5                 //   里程计协议长度
+#define   SENSOR_SIZE     17               //    传感器协议长度
+#define   COMPLETE          0                //    表示当前缓冲区解析完毕
+#define   ERROR                 -1               //    表示协议不合法
+#define   SUCCESS             1                //    表示协议解析完成     
+/*************************宏定义******************************/
+
+/*------------------------------------------------------------------------------分界线------------------------------------------------------------------------------*/
+
+/*************************结构体******************************/
+struct temporary
+{
+	char* buf;       //临时缓冲区
+	int*    sub;		 //缓冲区的当前下标
+}temp;
+/*************************结构体******************************/
+
+/*------------------------------------------------------------------------------分界线------------------------------------------------------------------------------*/
+
+/***********************************************函数声明**********************************************/
+int find_header(char* agreement_buf,int begin,int buf_size);
+
+int analysis_buffer(char* agreement_buf,int* begin,int buf_size,char* publish_msg);
+
+void save2temporary_buf(temporary* temp,const char* agreement_buf,int agreement_buf_sub,int agreement_size,int* half);
+
+void link2temporary_buf(temporary* temp,const char* agreement_buf,int* agreement_buf_sub,int agreement_size,int* half);
+
+int check_legal(char* agreement,int size);
+
+void discard(agreement_buf,int begin,int buf_size);
+/***********************************************函数声明**********************************************/
+

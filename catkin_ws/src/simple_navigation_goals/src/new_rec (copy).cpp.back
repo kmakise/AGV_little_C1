@@ -1,0 +1,204 @@
+#include </home/kmakise/catkin_ws/src/simple_navigation_goals/include/util.h>
+#include <ros/ros.h>
+#include <rcv.h>
+#define BUFFER_SIZE  36
+using namespace std;
+Uart uart;
+bool switch4data;
+bool switch4data1;
+int    number_flag;
+int    choose;
+int    result;
+int    fd;                            //文件描述符   
+int    len;                          
+extern int parsing(char* arr1,char* arr2,bool* ok1,bool* ok2);
+ros::Publisher pub;
+ros::Publisher pub_sensor; 
+ /*****************************************************
+*结构体名称:       receive_data
+*成员变量:
+*        		   		@is_analysis   消息是否处理完
+*				   		@data_len      消息长度
+*				   		@data          缓冲区
+*						@send          是否可以发送
+******************************************************/
+int number1;
+int number2; 
+typedef struct
+{
+	char data[BUFFER_SIZE];
+	char data1[BUFFER_SIZE];
+}receive_data;
+
+receive_data rcv;
+void* receive(void* ptr)
+{
+	char rcv_buf[1]; 
+	while(1)
+	{
+		len = uart.UART0_Recv(fd, rcv_buf,1);	
+		if(len > 0)
+		{
+			if(len != 1)
+			{
+				cout<<"串口异常!"<<endl;
+				return 0;
+			}
+			if(number1 == BUFFER_SIZE)
+			{
+				switch4data = true;
+				choose =2;
+			}
+			if(number2 == BUFFER_SIZE)
+			{
+				switch4data1 = true;
+				choose =1;
+			}
+			switch(choose)
+			{
+				case 1:
+					rcv.data[number1] = rcv_buf[0];
+					number1++;						
+					break;
+				case 2:
+					rcv.data1[number2] = rcv_buf[0];
+					number2++;
+					break;
+			}
+		}  
+		else  
+		{  
+			printf("cannot receive data\n");  
+		} 
+	}
+}
+
+void* print(void* ptr)
+{
+	while(1)
+	{
+		if(switch4data) //开始解析数据
+		{
+			parsing(rcv.data,rcv.data1,&switch4data,&switch4data1);
+			number1   = 0;
+			switch4data = false;
+		}
+		if(switch4data1)//开始解析数据
+		{ 
+			parsing(rcv.data,rcv.data1,&switch4data,&switch4data1);
+			number2 = 0;
+			switch4data1 = false;
+		}
+	}
+}
+void init()
+{
+	switch4data                 =   false;
+	switch4data1               =   false;
+	choose 						 =   1;
+	number1                     =   0;
+	number2                     =   0;
+	fd = uart.UART0_Open(fd); //打开串口，返回文件描述符  
+	uart.UART0_Init(fd,115200,0,8,1,'N');  
+}
+int main(int argc, char **argv)
+{  
+	cout<<"new version for k.makise @ Amadeus 3"<<endl;
+	init();
+
+	ros::init(argc,argv,"new_rec");
+	ros::NodeHandle nh;	
+	pub 				= nh.advertise<simple_navigation_goals::msg209>("/car_run",10);
+	pub_sensor = nh.advertise<simple_navigation_goals::sensor>("/sensor",10);
+
+	pthread_t id_1;
+	int ret1 = pthread_create(&id_1, NULL,receive , NULL);
+
+	pthread_t id_2;
+	int ret2 = pthread_create(&id_2, NULL,print , NULL);
+
+
+	while(1)
+	{
+	}
+	return 0;
+}  
+/********************************************************************
+*函数名称：                                  parsing
+*功能:   						 		解析两个缓冲区的内容
+*参数:                                 arr1:      缓冲区1
+*										   arr2:      缓冲区2
+*										   ok1:       表示缓冲区1的数据是否可以解析
+*   									   ok2:       表示缓冲区2的数据是否可以解析
+*返回值:                            0:正常
+*										  -1: 数据丢失
+*Author:                                         张嘉皓
+*修改时间:                               2018/8/2     11:19
+********************************************************************/
+int parsing(char* arr1,char* arr2,bool* ok1,bool* ok2)
+{
+	int num = 0;
+	if(*ok1)//如果缓冲区1的数据已满
+	{
+		int begin = 0;
+		char* publish_msg = (char*)malloc(sizeof(char*)*20);
+		while(1)
+		{	
+			result  = analysis_buffer(arr1,&begin,BUFFER_SIZE,publish_msg);
+			cout<<result<<endl;
+			if(result == SUCCESS)
+			{	
+				cout<<"This is ZhangDong error"<<endl;
+				int size = (publish_msg[1] == SENSOR_FLAG ? SENSOR_SIZE : ODOM_SIZE);
+				/*printf("USA[%d %d]  USB[%d %d]  USL[%d %d]  USR[%d %d]\n",publish_msg[6],publish_msg[7]
+				,publish_msg[8],publish_msg[9],publish_msg[10],publish_msg[11],publish_msg[12],publish_msg[13]);*/
+				analysis_number(publish_msg,size,pub,pub_sensor);
+			}
+			else if(result == ERROR)
+			{
+				cout<<"This is ZhangDong error"<<endl;
+				//将错误信息写入日志文件
+			}
+			else if(result == SENSOR_ERROR)
+			{
+				//重新请求传感器消息
+				send(uart,fd);	
+			}
+			else if(result == COMPLETE)
+			{
+				return 0;
+			}
+		}
+	}	
+	if(*ok2)
+	{
+		int begin = 0;
+		char* publish_msg = (char*)malloc(sizeof(char*)*20);
+		while(1)
+		{
+			result  = analysis_buffer(arr2,&begin,BUFFER_SIZE,publish_msg);
+			if(result == SUCCESS)
+			{
+				int size = (publish_msg[1] == SENSOR_FLAG ? SENSOR_SIZE : ODOM_SIZE);
+				cout<<"This is ZhangDong error"<<endl;
+				/*printf("USA[%d %d]  USB[%d %d]  USL[%d %d]  USR[%d %d]\n",publish_msg[6],publish_msg[7]
+				,publish_msg[8],publish_msg[9],publish_msg[10],publish_msg[11],publish_msg[12],publish_msg[13]);*/
+				analysis_number(publish_msg,size,pub,pub_sensor);
+			}
+			else if(result == ERROR)
+			{	
+				cout<<"This is ZhangDong error"<<endl;
+				//将错误信息写入日志文件
+			}
+			else if(result == SENSOR_ERROR)
+			{
+				//重新请求传感器消息
+				send(uart,fd);	
+			}
+			else if(result == COMPLETE)
+			{
+				return 0;
+			}
+		}
+	}
+}

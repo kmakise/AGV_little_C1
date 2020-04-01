@@ -1,0 +1,36 @@
+<launch>
+  <param name="/use_sim_time" value="false" />
+
+  <!-- Load the URDF/Xacro model of our robot -->
+  <arg name="urdf_file" default="$(find xacro)/xacro.py '$(find rbx1_description)/my_urdf/turtlebot.urdf.xacro'" />
+   
+  <param name="robot_description" command="$(arg urdf_file)" />
+    
+  <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher" >  
+  </node>
+  
+  <node name="robot_state_publisher" pkg="robot_state_publisher" type="state_publisher">
+      <param name="publish_frequency" type="double" value="20.0" />
+  </node>
+
+  <!-- Run the odom node -->
+  <node pkg="simple_navigation_goals" type="odomtest" name="odom" args="-d $(find simple_navigation_goals)/odomtest"/>
+
+  <!-- Run the amcl -->
+  <include file="$(find rbx1_nav)/launch/tb_demo_amcl.launch" />
+
+  <!-- Run the ladar -->
+  <include file="$(find rplidar_ros)/launch/rplidar.launch" />
+
+<!-- Run the socket node 
+  <node pkg="beginner_tutorials" type="talker" name="talker" args="-d $(find beginner_tutorials)/talker"/>
+-->
+
+  <!-- Run the uart node -->
+  <node pkg="simple_navigation_goals" type="listener" name="listener" args="-d $(find simple_navigation_goals)/listener"/>
+ <node pkg="simple_navigation_goals" type="pop" name="pop" args="-d $(find simple_navigation_goals)/pop"/>
+
+  <!-- Run the rviz view -->
+  <node pkg="rviz" type="rviz" name="rviz" args="-d $(find rbx1_nav)/nav_test.rviz"/>
+  
+</launch>
